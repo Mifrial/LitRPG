@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статы</title>
+</head>
+<body>
+    <div id="stat-main-block" class="main-block"></div>
+    <div id="feat-main-block" class="main-block"></div>
+    <div id="save-load-block">
+        <input id="filename" value="stat"/>
+        <button>Сохранить</button>
+        <button>Загрузить</button>
+    </div>
+</body>
+</html>
+
+<script>
+
+    class AdditionalCost
+    {
+        aID;
+        bID;
+        addCost;
+
+        constructor(aID, bID, addCost)
+        {
+            this.aID = aID;
+            this.bID = bID;
+            this.addCost = addCost;
+        }
+
+        isIt(aID, bID)
+        {
+            if (this.aID == aID && this.bID == bID) {
+                return true;
+            }
+            if (this.bID == aID && this.aID == bID) {
+                return true;
+            }
+            return false;
+        }
+
+        updateAddCost(addCost)
+        {
+            this.addCost = addCost;
+        }
+    }
+
+    class AdditionalCostList
+    {
+        addCostList;
+
+        constructor()
+        {
+            this.addCostList = [];
+        }
+
+        add(aID, bID, addCost)
+        {
+            let elemId = this.find(aID, bID);
+            if (elemId >= 0) {
+                this.addCostList[elemId].updateAddCost(addCost);
+            } else {
+                this.addCostList.push(new AdditionalCost(aID, bID, addCost));
+            }
+        }
+
+        find(aID, bID)
+        {
+            for (let aCostKey in this.addCostList) {
+                if (this.addCostList[aCostKey].isIt(aID, bID)) {
+                    return aCostKey;
+                }
+            }
+            return -1;
+        }
+
+        get(aID, bID)
+        {
+            let result = 0;
+
+            const key = this.find(aID, bID);
+            if (key >= 0 && this.addCostList[key].addCost > 0) {
+                result = this.addCostList[key].addCost;
+            }
+
+            return result;
+        }
+    }
+
+    class StatApp
+    {
+        addCostList;
+        multiplicatorData;
+        arStats;
+
+        getBaseValuses = () =>
+        {
+            this.addCostList.add('DEX', 'STR', 4);
+            this.addCostList.add('DEX', 'STA', 3);
+            this.addCostList.add('DEX', 'WIS', 2);
+            this.addCostList.add('DEX', 'RES_MAG', 5);
+            this.addCostList.add('DEX', 'REGEN', 5);
+            this.addCostList.add('DEX', 'F_SOUL_BODY', 5);
+
+            // this.addCostList.add('STA', 'DEX', 3);
+            this.addCostList.add('STR', 'STA', 5);
+            this.addCostList.add('STR', 'RES_MAG', 5);
+            this.addCostList.add('STR', 'REGEN', 5);
+            this.addCostList.add('STR', 'F_SOUL_BODY', 5);
+
+            // this.addCostList.add('STA', 'DEX', 3);
+            // this.addCostList.add('STA', 'STR', 5);
+            this.addCostList.add('STA', 'INT', 2);
+            this.addCostList.add('STA', 'RES_MAG', 5);
+            this.addCostList.add('STA', 'REGEN', 5);
+            this.addCostList.add('STA', 'F_SOUL_BODY', 5);
+
+            // this.addCostList.add('WIS', 'DEX', 2);
+            this.addCostList.add('WIS', 'INT', 5);
+            this.addCostList.add('WIS', 'RES_MAG', 5);
+            this.addCostList.add('WIS', 'REGEN', 3);
+            this.addCostList.add('WIS', 'F_SOUL_BODY', 5);
+
+            // this.addCostList.add('INT', 'STA', 2);
+            // this.addCostList.add('INT', 'WIS', 5);
+            this.addCostList.add('INT', 'RES_MAG', 5);
+            this.addCostList.add('INT', 'REGEN', 1);
+            this.addCostList.add('INT', 'F_SOUL_BODY', 5);
+
+            this.addCostList.add('MAG', 'RES_MAG', 5);
+            this.addCostList.add('MAG', 'F_MAG_POWER', 5);
+
+            // this.addCostList.add('RES_MAG', 'DEX', 5);
+            // this.addCostList.add('RES_MAG', 'STR', 5);
+            // this.addCostList.add('RES_MAG', 'STA', 5);
+            // this.addCostList.add('RES_MAG', 'WIS', 5);
+            // this.addCostList.add('RES_MAG', 'INT', 5);
+            // this.addCostList.add('RES_MAG', 'MAG', 5);
+            this.addCostList.add('RES_MAG', 'REGEN', 5);
+
+            // this.addCostList.add('REGEN', 'DEX', 5);
+            // this.addCostList.add('REGEN', 'STR', 5);
+            // this.addCostList.add('REGEN', 'STA', 5);
+            // this.addCostList.add('REGEN', 'WIS', 3);
+            // this.addCostList.add('REGEN', 'INT', 1);
+            // this.addCostList.add('REGEN', 'RES_MAG', 5);
+            
+            // this.addCostList.add('F_MAG_POWER', 'MAG', 5);
+
+            // this.addCostList.add('F_SOUL_BODY', 'DEX', 5);
+            // this.addCostList.add('F_SOUL_BODY', 'STR', 5);
+            // this.addCostList.add('F_SOUL_BODY', 'STA', 5);
+            // this.addCostList.add('F_SOUL_BODY', 'WIS', 5);
+            // this.addCostList.add('F_SOUL_BODY', 'INT', 5);
+        }
+
+        getMultiplicatorData = () =>
+        {
+            const additionalMultiplicator = 1;
+            const baseBodySize = 50;
+            const baseMultiplicator = 7;
+            const bodySize = 1;
+
+            const sqrtMult = Math.pow(baseMultiplicator - additionalMultiplicator, 2);
+            const bodySizeMult = bodySize / baseBodySize;
+
+            return {
+                common: additionalMultiplicator + Math.sqrt(sqrtMult * bodySizeMult),
+                reverse: additionalMultiplicator + Math.sqrt(sqrtMult / bodySizeMult),
+            }
+        }
+    
+        getStats = () =>
+        {
+            this.arStats = {
+                DEX: {
+                    name: 'Ловкость',
+                    open: true,
+                    val: 19,
+                    addCost: 0,
+                    multiplicator: this.multiplicatorData.common,
+                    costHint: '',
+                    type: 'stat',
+                },
+                STR: {
+                    name: 'Сила',
+                    open: true,
+                    val: 19,
+                    addCost: 0,
+                    multiplicator: this.multiplicatorData.common,
+                    costHint: '',
+                    type: 'stat',
+                },
+                STA: {
+                    name: 'Выносливость',
+                    open: true,
+                    val: 19,
+                    addCost: 0,
+                    multiplicator: this.multiplicatorData.common,
+                    costHint: '',
+                    type: 'stat',
+                },
+                WIS: {
+                    name: 'Восприятие',
+                    open: true,
+                    val: 12,
+                    addCost: 0,
+                    multiplicator: this.multiplicatorData.common * 0.6 + this.multiplicatorData.reverse * 0.4,
+                    costHint: '',
+                    type: 'stat',
+                },
+                INT: {
+                    name: 'Интеллект',
+                    open: true,
+                    val: 8,
+                    addCost: 0,
+                    multiplicator: this.multiplicatorData.reverse,
+                    costHint: '',
+                    type: 'stat',
+                },
+                MAG: {
+                    name: 'Магия',
+                    open: true,
+                    val: 33,
+                    addCost: 0,
+                    multiplicator: 10,
+                    costHint: '',
+                    type: 'stat',
+                },
+                SOUL: {
+                    name: 'Сила души',
+                    open: true,
+                    val: 74,
+                    addCost: 0,
+                    multiplicator: 10,
+                    costHint: '',
+                    type: 'stat',
+                },
+                RES_MAG: {
+                    name: 'Соп. магии',
+                    open: false,
+                    val: 10,
+                    addCost: 0,
+                    multiplicator: this.multiplicatorData.common,
+                    costHint: '',
+                    type: 'stat',
+                },
+                REGEN: {
+                    name: 'Регенерация',
+                    open: false,
+                    val: 100,
+                    addCost: 0,
+                    // накидка подпитку регена от магии(1) и вечную молодость
+                    multiplicator: this.multiplicatorData.common * 2,
+                    costHint: '',
+                    type: 'stat',
+                },
+                F_MAG_POWER: {
+                    name: 'Магия. Повышенная мощность', // Открыто на Магия = 20
+                    open: true,
+                    firstLvlCost: 20,
+                    upCostStep: 5,
+                    lvl: 3,
+                    addCost: 0,
+                    multiplicator: 10,
+                    costHint: '',
+                    type: 'feat',
+                },
+                F_SOUL_BODY: {
+                    name: 'Телосложение родства души',
+                    open: true,
+                    firstLvlCost: 0,
+                    upCostStep: 50,
+                    lvl: 1,
+                    addCost: 0,
+                    multiplicator: 5 + this.multiplicatorData.common * 0.5,
+                    costHint: '',
+                    type: 'feat',
+                },
+            };
+        }
+
+        onFieldChange = () =>
+        {
+            this.getStatsFromFields();
+            this.recountAllStatAddCost();
+            this.redraw();
+        }
+
+        getStatsFromFields = () =>
+        {
+            for (let statKey in this.arStats)
+            {
+                const elStatValue = document.getElementById(statKey+'-value');
+                if (elStatValue) {
+                    const newStatValue = Number(elStatValue.value);
+                    if (newStatValue >= 0) {
+                        if (this.arStats[statKey].type == 'stat') {
+                            this.arStats[statKey].val = newStatValue;
+                        } else if (this.arStats[statKey].type == 'feat') {
+                            this.arStats[statKey].lvl = newStatValue;
+                        }
+                    } else {
+                        elStatValue.value = 0;
+                    }
+                }
+            }
+        }
+
+        redraw = () =>
+        {
+            const mainStatBlockEl = document.getElementById('stat-main-block');
+            const mainFeatBlockEl = document.getElementById('feat-main-block');
+            for (let statKey in this.arStats) {
+                const statBlockId = statKey+'-block';
+                let statBlockEl = document.getElementById(statBlockId);
+                if (!statBlockEl) {
+                    statBlockEl = document.createElement("div");
+                    statBlockEl.id = statBlockId;
+                    statBlockEl.classList.add('stat-block');
+                    if (this.arStats[statKey].open == false) {
+                        statBlockEl.classList.add('not-open');
+                    }
+                    if (this.arStats[statKey].type == 'stat') {
+                        mainStatBlockEl.appendChild(statBlockEl);
+                    } else if (this.arStats[statKey].type == 'feat') {
+                        mainFeatBlockEl.appendChild(statBlockEl);
+                    }
+                }
+
+                const statLabelId = statKey+'-label';
+                let statLabelEl = document.getElementById(statLabelId);
+                if (!statLabelEl) {
+                    statLabelEl = document.createElement("span");
+                    statLabelEl.id = statLabelId;
+                    statLabelEl.classList.add('stat-label');
+                    statLabelEl.innerHTML = this.arStats[statKey].name+': ';
+                    statBlockEl.appendChild(statLabelEl);
+                }
+
+                const statValueId = statKey+'-value';
+                let statValueEl = document.getElementById(statValueId);
+                if (!statValueEl) {
+                    statValueEl = document.createElement("input");
+                    statValueEl.id = statValueId;
+                    statValueEl.classList.add('stat-value');
+                    statValueEl.setAttribute('type', 'number');
+                    if (this.arStats[statKey].type == 'stat') {
+                        statValueEl.value = this.arStats[statKey].val;
+                    } else if (this.arStats[statKey].type == 'feat') {
+                        statValueEl.value = this.arStats[statKey].lvl;
+                    }
+                    statValueEl.onchange = this.onFieldChange;
+                    statBlockEl.appendChild(statValueEl);
+                }
+
+                const statCostId = statKey+'-cost';
+                let statCostEl = document.getElementById(statCostId);
+                if (!statCostEl) {
+                    statCostEl = document.createElement("span");
+                    statCostEl.id = statCostId;
+                    statCostEl.classList.add('stat-cost');
+                    statBlockEl.appendChild(statCostEl);
+                }
+                const statUpCost = this.getStatUpCost(statKey);
+                statBlockEl.setAttribute('title', this.arStats[statKey].costHint);
+                statCostEl.innerHTML = 'Стоимость:'+statUpCost+' (Добавочная: ' + (Math.ceil(this.arStats[statKey].addCost * 100) / 100) + ')';
+            }
+        }
+
+        recountAllStatAddCost = () =>
+        {
+            for (let statKey in this.arStats) {
+                this.recountStatAddCost(statKey, this.arStats[statKey]);
+            }
+        }
+
+        recountStatAddCost = (aStatKey, aStat) =>
+        {
+            let newAddCost = 0;
+            const baseCost = this.getStatUpBaseCost(aStatKey);
+            let newCostHint = 'База: ' + Math.ceil(baseCost * 100) / 100;
+            for (let bStatKey in this.arStats) {
+                let additioalBase = -999;
+                if (this.arStats[bStatKey].type == 'stat') {
+                    additioalBase = this.arStats[bStatKey].val - 10;
+                } else if (this.arStats[bStatKey].type == 'feat') {
+                    additioalBase = this.arStats[bStatKey].lvl;
+                }
+                const addCostVal = this.addCostList.get(aStatKey, bStatKey);
+                const newAddCostByStat = additioalBase * addCostVal * aStat.multiplicator * this.arStats[bStatKey].multiplicator / 100;
+                newAddCost += newAddCostByStat;
+                if (newAddCostByStat) {
+                    if (newCostHint) newCostHint += '\n';
+                    newCostHint += this.arStats[bStatKey].name + ': ' + Math.ceil(newAddCostByStat * 100) / 100;
+                }
+            }
+
+            this.arStats[aStatKey].addCost = newAddCost;
+            this.arStats[aStatKey].costHint = newCostHint;
+        }
+
+        getStatUpBaseCost = (statId) =>
+        {
+            let result = 0;
+            const stat = this.arStats[statId];
+            if (stat) {
+                if (stat.type == 'stat') {
+                    result = (stat.val + 1) * stat.multiplicator;
+                } else if (stat.type == 'feat') {
+                    result = (stat.firstLvlCost + stat.upCostStep * stat.lvl) * stat.multiplicator;
+                }
+            }
+
+            return result;
+        }
+
+        getStatUpCost = (statId) =>
+        {
+            let result = 0;
+
+            const stat = this.arStats[statId];
+            if (stat) {
+                result = Math.ceil(this.getStatUpBaseCost(statId) + stat.addCost);
+            }
+
+            return result;
+        }
+
+        constructor()
+        {
+            this.addCostList = new AdditionalCostList();
+            this.getBaseValuses();
+            this.multiplicatorData = this.getMultiplicatorData();
+            this.getStats();
+            this.recountAllStatAddCost();
+            this.redraw();
+        }
+    }
+    
+    obStatApp = new StatApp();
+</script>
+
+<style>
+    .main-block {
+        display: inline-table;
+        border: 5px #e3dddd solid;
+    }
+
+    .stat-block {
+        padding: 7px;
+        cursor: default;
+        border-bottom: 2px white solid;
+        border-top: 2px white solid;
+    }
+
+    .stat-block:hover {
+        border-bottom: 2px #e3dddd solid;
+        border-top: 2px #e3dddd solid;
+        background-color: #f7f7f7;
+    }
+
+    .not-open {
+        opacity: 0.4;
+    }
+    
+    .stat-value {
+        width: 50px;
+        margin: 5px;
+    }
+
+    .stat-cost {
+        color: #787474;
+    }
+    
+    #save-load-block {
+        display: none;
+        margin-top: 50px;
+        text-align: center;
+    }
+</style>
